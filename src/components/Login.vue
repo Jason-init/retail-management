@@ -4,7 +4,7 @@
       <div class="avatar_box">
         <img src="../assets/logo.png" alt="user avatar">
       </div>
-      <el-form :model="loginForm" :rules="loginFormRules" class="login_form">
+      <el-form ref="loginFormRef" :model="loginForm" :rules="loginFormRules" class="login_form">
         <!-- username -->
         <el-form-item prop="username">
           <el-input v-model="loginForm.username" prefix-icon="iconfont icon-yonghu" ></el-input>
@@ -15,8 +15,8 @@
         </el-form-item>
         <!-- submit and reset form -->
         <el-form-item class="btns">
-          <el-button type="primary">登录</el-button>
-          <el-button type="info">重置</el-button>
+          <el-button type="primary" @click="login">登录</el-button>
+          <el-button type="info" @click="loginFormReset">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -28,8 +28,8 @@ export default {
   data: function () {
     return {
       loginForm: {
-        username: 'zhangqi',
-        password: '123'
+        username: '',
+        password: ''
       },
       loginFormRules: {
         username: [
@@ -41,6 +41,19 @@ export default {
           { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
         ]
       }
+    }
+  },
+  methods: {
+    loginFormReset: function () {
+      this.$refs.loginFormRef.resetFields()
+    },
+    login: function () {
+      this.$refs.loginFormRef.validate(async isValid => {
+        if (!isValid) return
+        const { data: ret } = await this.$http.post('login', this.loginForm)
+        if (ret.meta.status !== 200) return console.log('登陆失败')
+        console.log('登录成功')
+      })
     }
   }
 }
