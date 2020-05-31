@@ -1,0 +1,25 @@
+@font-face {font-family: "iconfont";
+  src: url('iconfont.eot?t=1590898071876'); /* IE9 */
+  src: url('iconfont.eot?t=1590898071876#iefix') format('embedded-opentype'), /* IE6-IE8 */
+  url('data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAAPkAAsAAAAAB/QAAAOWAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCDBgqDXIM7ATYCJAMMCwgABCAFhG0HNxsCB1GUzUmY7KcmTxCBQohMDCFQ4GaEQgA4RoAVKAAADKXk4Wm/X+fOzH+oNEiikS4eSaINEqF4J0GiZEIjVLHdzWJpI+n9r39fdyBn1EGdhOS9fOWf/DtmZ61xergbVLslVG63A+dc1qPsFzt/xyw73UowaUWnCozC+9YgjyJc/P8P99oUn9eyXO5rjqFRJ8A4oID2xjZZgaQfhD9sE0ccl5XL4fAqPHPPOk+g1bAoZst5JTVgq6DTAnHClU6wzZmUlurQLFQ1a4u4ZaU5XadPwE34/fgnIWxJGhmdu3Gc2wMZP+2/9eaJekJLKcTTOSBvImMGKMRhrWubRZyaYaHVVFm2F1eKkKaK1jWhyNJUG/3HS0SFVraDCZxO/Gx1+QQ/e9MSrn8TFVpwC4x8J8z+QAOKI/1jX1fXAKfhN6fWtmtct87z6u1PjfOt9f717q+hzmDXZEmEFKiStzKPJMRqkPc257B5Wdf0Lm1YvgakiQXlvLQCLSbXkV7nq3MCHTu5/NurcPjErVndBs0uYQFgazPKiIcTrGxIicn9eBvD9XE48hHy96/lo2D1jyxAFBYSSfObPTQoyPJKlHhyS5xWV1ZpfoAYjTtgdnD0IgCiACSS5je60NIIVEWJJw8ckJrSx65V/eXvzFNu+90ZAszLYjrzcr8knjMlVQZaHReSRY9mQuL/Jw9dHO86jnXl6NJxN/j+cnMMMhdgIzIzIHbMm21k+87nd8/3oXk55+VmweIH0Hx+pJhnhrs7mEQN5kgKPzX+hd7lvurL03Is6ACo5f95BKCen+Te3/obm0c/XdpdUv7ZOhTw7bNMDYO1AnCL5pt2Bz9RDGwplpSaczFErsjJZuusXhHBQlP862qh19fhmgFwgtCcE8uQNBmCrNkItTBnoKHNLFSazUGrafmb2/SRLERpwZRZBKHbA0g6PUDW7TO1ML9Aw6C/UOkOC2i1GR57thkLbp8taSfSHtI1SHi3MLC1on1UXUWVXl2nzEpDVh2VJh4l8TFxxWw+NVA5xQJTn5KAyAiTQk/y0GVUpxPEKIWGdmOMimhMio1ldW+K6RZ6sLdEojohqgfRZRDBdRMMmN8Z2Zc+X4VS9NLpJFuamoJ1KMmE907EixEHoOarDKCmW7nGpI8iAUIMwUiCHpGHHJSOpQTCWD9Kg+qGYqgDEkZJYkk7BlXFLK/Rv98uaEWPzJEiR1GdCoOi9lrqub4TAAAA') format('woff2'),
+  url('iconfont.woff?t=1590898071876') format('woff'),
+  url('iconfont.ttf?t=1590898071876') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */
+  url('iconfont.svg?t=1590898071876#iconfont') format('svg'); /* iOS 4.1- */
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-yonghu:before {
+  content: "\e60a";
+}
+
+.icon-mima:before {
+  content: "\e612";
+}
+
