@@ -28,8 +28,8 @@ export default {
   data: function () {
     return {
       loginForm: {
-        username: '',
-        password: ''
+        username: 'admin',
+        password: '123456'
       },
       loginFormRules: {
         username: [
@@ -51,8 +51,10 @@ export default {
       this.$refs.loginFormRef.validate(async isValid => {
         if (!isValid) return
         const { data: ret } = await this.$http.post('login', this.loginForm)
-        if (ret.meta.status !== 200) return console.log('登陆失败')
-        console.log('登录成功')
+        if (ret.meta.status !== 200) return this.$message.error('登录失败')
+        this.$message.success('登陆成功')
+        window.sessionStorage.setItem('token', ret.data.token)
+        this.$router.push('/home')
       })
     }
   }
