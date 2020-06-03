@@ -13,7 +13,7 @@
       <!-- 左侧导航栏 -->
       <el-aside :width="isCollapsed ? '64px':'200px'">
         <div class="toggle-button" @click="toggleCollapse">|||</div>
-        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409BFF" unique-opened :collapse="isCollapsed" :collapse-transition="false" :router="true">
+        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409BFF" unique-opened :collapse="isCollapsed" :collapse-transition="false" :router="true" :default-active="activePath">
           <!-- 一级菜单 -->
           <el-submenu :index="item.id + ''" v-for="item in menuList" :key="item.id">
             <template slot="title">
@@ -21,7 +21,7 @@
               <span>{{item.authName}}</span>
             </template>
             <!-- 一级菜单选项 -->
-            <el-menu-item :index="subItem.path" v-for="subItem in item.children" :key="subItem.id">
+            <el-menu-item :index="'/' + subItem.path" v-for="subItem in item.children" :key="subItem.id" @click="saveNavState('/' + subItem.path)">
               <template slot="title">
                 <i class="el-icon-menu"></i>
                 <span>{{subItem.authName}}</span>
@@ -50,11 +50,13 @@ export default {
         102: 'iconfont icon-dingdan',
         145: 'iconfont icon-baobiao'
       },
-      isCollapsed: false
+      isCollapsed: false,
+      activePath: ''
     }
   },
   created: function () {
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem('activePath')
   },
   methods: {
     logout: function () {
@@ -65,10 +67,12 @@ export default {
       const { data: ret } = await this.$http.get('menus')
       if (ret.meta.status !== 200) return this.$message.error(ret.meta.msg)
       this.menuList = ret.data
-      console.log(this.menuList)
     },
     toggleCollapse: function () {
       this.isCollapsed = !this.isCollapsed
+    },
+    saveNavState: function (activePath) {
+      window.sessionStorage.setItem('activePath', activePath)
     }
   }
 }
