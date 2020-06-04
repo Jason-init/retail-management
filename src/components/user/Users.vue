@@ -14,7 +14,7 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary">添加用户</el-button>
+          <el-button type="primary" @click="isDialogVisible = true">添加用户</el-button>
         </el-col>
       </el-row>
       <!-- 用户列表区域 -->
@@ -50,17 +50,48 @@
         </el-table-column>
       </el-table>
       <!-- 分页区域 -->
-      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="queryInfo.pagenum"
-        :page-sizes="[1, 2, 5, 10]" :page-size="queryInfo.pagesize" layout="total, sizes, prev, pager, next, jumper"
-        :total="total">
+      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+        :current-page="queryInfo.pagenum" :page-sizes="[1, 2, 5, 10]" :page-size="queryInfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper" :total="total">
       </el-pagination>
     </el-card>
+    <!-- 添加用户对话框 -->
+    <el-dialog title="添加用户" :visible.sync="isDialogVisible" width="40%" @close="resetAddUserForm">
+      <el-form :model="addUserForm" :rules="addUserFormRules" ref="addUserFormRef" label-width="70px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="addUserForm.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="addUserForm.password" type="password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addUserForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机号" prop="mobile">
+          <el-input v-model="addUserForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="isDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUser">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 export default {
   data: function () {
+    const checkEmail = (rule, value, callback) => {
+      const emailRegular = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+      if (!emailRegular.test(value)) return callback(new Error('请输入合法的邮箱'))
+      callback()
+    }
+    const checkMobile = (rule, value, callback) => {
+      const mobileRegular = /^1((3[\d])|(4[5,6,7,9])|(5[0-3,5-9])|(6[5-7])|(7[0-8])|(8[\d])|(9[1,8,9]))\d{8}$/
+      if (!mobileRegular.test(value)) return callback(new Error('请输入合法的手机号'))
+      callback()
+    }
     return {
       queryInfo: {
         query: '',
@@ -68,7 +99,30 @@ export default {
         pagesize: 2
       },
       userList: [],
-      total: 0
+      total: 0,
+      isDialogVisible: false,
+      addUserForm: {
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      },
+      addUserFormRules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
+        ],
+        email: [
+          { validator: checkEmail, trigger: 'blur' }
+        ],
+        mobile: [
+          { validator: checkMobile, trigger: 'blur' }
+        ]
+      }
     }
   },
   created: function () {
@@ -98,6 +152,19 @@ export default {
         return this.$message.error(ret.meta.msg)
       }
       this.$message.success(ret.meta.msg)
+    },
+    resetAddUserForm: function () {
+      this.$refs.addUserFormRef.resetFields()
+    },
+    addUser: function () {
+      this.$refs.addUserFormRef.validate(async isValid => {
+        if (!isValid) return
+        const { data: ret } = await this.$http.post('users', this.addUserForm)
+        if (ret.meta.status !== 201) return this.$message.error(ret.meta.msg)
+        this.$message.success(ret.meta.msg)
+        this.isDialogVisible = false
+        this.getUserList()
+      })
     }
   }
 }
