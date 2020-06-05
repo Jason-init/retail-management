@@ -14,7 +14,7 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="isDialogVisible = true">添加用户</el-button>
+          <el-button type="primary" @click="isAddUserDialogVisible = true">添加用户</el-button>
         </el-col>
       </el-row>
       <!-- 用户列表区域 -->
@@ -36,12 +36,13 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180">
-          <template>
-            <el-tooltip effect="dark" content="编辑用户" placement="top" :enterable="false">
-              <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+          <template slot-scope="scope">
+            <el-tooltip effect="dark" content="修改用户" placement="top" :enterable="false">
+              <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditUserDialog(scope.row.id)">
+              </el-button>
             </el-tooltip>
             <el-tooltip effect="dark" content="删除用户" placement="top" :enterable="false">
-              <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+              <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteUser(scope.row.id)"></el-button>
             </el-tooltip>
             <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
               <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
@@ -56,7 +57,7 @@
       </el-pagination>
     </el-card>
     <!-- 添加用户对话框 -->
-    <el-dialog title="添加用户" :visible.sync="isDialogVisible" width="40%" @close="resetAddUserForm">
+    <el-dialog title="添加用户" :visible.sync="isAddUserDialogVisible" width="40%" @closed="addUserDialogClosed">
       <el-form :model="addUserForm" :rules="addUserFormRules" ref="addUserFormRef" label-width="70px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="addUserForm.username"></el-input>
@@ -72,8 +73,26 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="isDialogVisible = false">取 消</el-button>
+        <el-button @click="isAddUserDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="addUser">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 修改用户对话框 -->
+    <el-dialog title="修改用户信息" :visible.sync="isEditUserDialogVisible" width="40%" @closed="editUserdialogClosed">
+      <el-form :model="editUserForm" :rules="editUserFormRules" ref="editUserFormRef" label-width="70px">
+        <el-form-item label="用户名">
+          <el-input v-model="editUserForm.username" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editUserForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机号" prop="mobile">
+          <el-input v-model="editUserForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="isEditUserDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUserInfo">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -83,12 +102,12 @@
 export default {
   data: function () {
     const checkEmail = (rule, value, callback) => {
-      const emailRegular = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+      const emailRegular = /^$|[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
       if (!emailRegular.test(value)) return callback(new Error('请输入合法的邮箱'))
       callback()
     }
     const checkMobile = (rule, value, callback) => {
-      const mobileRegular = /^1((3[\d])|(4[5,6,7,9])|(5[0-3,5-9])|(6[5-7])|(7[0-8])|(8[\d])|(9[1,8,9]))\d{8}$/
+      const mobileRegular = /^$|1((3[\d])|(4[5,6,7,9])|(5[0-3,5-9])|(6[5-7])|(7[0-8])|(8[\d])|(9[1,8,9]))\d{8}$/
       if (!mobileRegular.test(value)) return callback(new Error('请输入合法的手机号'))
       callback()
     }
@@ -100,7 +119,7 @@ export default {
       },
       userList: [],
       total: 0,
-      isDialogVisible: false,
+      isAddUserDialogVisible: false,
       addUserForm: {
         username: '',
         password: '',
@@ -122,6 +141,16 @@ export default {
         mobile: [
           { validator: checkMobile, trigger: 'blur' }
         ]
+      },
+      isEditUserDialogVisible: false,
+      editUserForm: {},
+      editUserFormRules: {
+        email: [
+          { validator: checkEmail, trigger: 'blur' }
+        ],
+        mobile: [
+          { validator: checkMobile, trigger: 'blur' }
+        ]
       }
     }
   },
@@ -130,12 +159,12 @@ export default {
   },
   methods: {
     getUserList: async function () {
-      const { data: ret } = await this.$http.get('users', {
+      const { data: res } = await this.$http.get('users', {
         params: this.queryInfo
       })
-      if (ret.meta.status !== 200) return this.$message.error(ret.meta.msg)
-      this.userList = ret.data.users
-      this.total = ret.data.total
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.userList = res.data.users
+      this.total = res.data.total
     },
     handleSizeChange: function (newSize) {
       this.queryInfo.pagesize = newSize
@@ -146,25 +175,59 @@ export default {
       this.getUserList()
     },
     userStateChanged: async function (userInfo) {
-      const { data: ret } = await this.$http.put(`users/${userInfo.id}/state/${userInfo.mg_state}`)
-      if (ret.meta.status !== 200) {
+      const { data: res } = await this.$http.put(`users/${userInfo.id}/state/${userInfo.mg_state}`)
+      if (res.meta.status !== 200) {
         userInfo.mg_state = !userInfo.mg_state
-        return this.$message.error(ret.meta.msg)
+        return this.$message.error(res.meta.msg)
       }
-      this.$message.success(ret.meta.msg)
+      this.$message.success(res.meta.msg)
     },
-    resetAddUserForm: function () {
+    addUserDialogClosed: function () {
       this.$refs.addUserFormRef.resetFields()
     },
     addUser: function () {
       this.$refs.addUserFormRef.validate(async isValid => {
         if (!isValid) return
-        const { data: ret } = await this.$http.post('users', this.addUserForm)
-        if (ret.meta.status !== 201) return this.$message.error(ret.meta.msg)
-        this.$message.success(ret.meta.msg)
-        this.isDialogVisible = false
+        const { data: res } = await this.$http.post('users', this.addUserForm)
+        if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
+        this.$message.success(res.meta.msg)
+        this.isAddUserDialogVisible = false
         this.getUserList()
       })
+    },
+    editUserdialogClosed: function () {
+      this.$refs.editUserFormRef.resetFields()
+    },
+    showEditUserDialog: async function (id) {
+      this.isEditUserDialogVisible = true
+      const { data: res } = await this.$http.get('users/' + id)
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.editUserForm = res.data
+    },
+    editUserInfo: function () {
+      this.$refs.editUserFormRef.validate(async isValid => {
+        if (!isValid) return
+        const { data: res } = await this.$http.put('users/' + this.editUserForm.id, {
+          email: this.editUserForm.email,
+          mobile: this.editUserForm.mobile
+        })
+        if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+        this.$message.success(res.meta.msg)
+        this.isEditUserDialogVisible = false
+        this.getUserList()
+      })
+    },
+    deleteUser: async function (id) {
+      const confirm = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(cancel => cancel)
+      if (confirm !== 'confirm') return this.$message.info('已取消删除')
+      const { data: res } = await this.$http.delete('users/' + id)
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message.success(res.meta.msg)
+      this.getUserList()
     }
   }
 }
