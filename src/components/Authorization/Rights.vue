@@ -6,7 +6,7 @@
       <el-breadcrumb-item>权限列表</el-breadcrumb-item>
     </el-breadcrumb>
     <el-card>
-      <el-table :data="rightsList" style="width: 100%" border stripe>
+      <el-table :data="rightList" style="width: 100%" border stripe>
         <el-table-column type="index" label="#">
         </el-table-column>
         <el-table-column prop="authName" label="权限名称">
@@ -29,7 +29,7 @@
 export default {
   data: function () {
     return {
-      rightsList: []
+      rightList: []
     }
   },
   created: function () {
@@ -39,7 +39,7 @@ export default {
     getRightsList: async function () {
       const { data: res } = await this.$http.get('rights/list')
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
-      this.rightsList = res.data
+      this.rightList = res.data
     }
   }
 
