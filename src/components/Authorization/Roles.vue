@@ -46,8 +46,9 @@
         </el-table-column>
         <el-table-column label="操作" width="284">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)">编辑</el-button>
-            <el-button size="mini" type="danger" icon="el-icon-delete">删除</el-button>
+            <el-button size="mini" type="primary" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)">编辑
+            </el-button>
+            <el-button size="mini" type="danger" icon="el-icon-delete" @click="deleteRole(scope.row.id)">删除</el-button>
             <el-button size="mini" type="warning" icon="el-icon-setting">分配权限</el-button>
           </template>
         </el-table-column>
@@ -97,16 +98,20 @@ export default {
         roleDesc: ''
       },
       addRoleFormRules: {
-        roleName: [
-          { required: true, message: '请输入角色名称', trigger: 'blur' }
-        ]
+        roleName: [{
+          required: true,
+          message: '请输入角色名称',
+          trigger: 'blur'
+        }]
       },
       isEditRoleDialogVisible: false,
       editRoleForm: {},
       editRoleFormRules: {
-        roleName: [
-          { required: true, message: '请输入角色名称', trigger: 'blur' }
-        ]
+        roleName: [{
+          required: true,
+          message: '请输入角色名称',
+          trigger: 'blur'
+        }]
       }
     }
   },
@@ -115,7 +120,9 @@ export default {
   },
   methods: {
     getRoleList: async function () {
-      const { data: res } = await this.$http.get('roles')
+      const {
+        data: res
+      } = await this.$http.get('roles')
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.roleList = res.data
     },
@@ -126,7 +133,9 @@ export default {
         type: 'warning'
       }).catch(cancel => cancel)
       if (confirm !== 'confirm') return this.$message.info('已取消删除')
-      const { data: res } = await this.$http.delete(`roles/${row.id}/rights/${id}}`)
+      const {
+        data: res
+      } = await this.$http.delete(`roles/${row.id}/rights/${id}}`)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.$message.success(res.meta.msg)
       row.children = res.data
@@ -137,7 +146,9 @@ export default {
     addRole: function () {
       this.$refs.addRoleFormRef.validate(async isValidated => {
         if (!isValidated) return
-        const { data: res } = await this.$http.post('roles', this.addRoleForm)
+        const {
+          data: res
+        } = await this.$http.post('roles', this.addRoleForm)
         if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
         this.$message.success(res.meta.msg)
         this.isAddRoleDialogVisible = false
@@ -148,7 +159,9 @@ export default {
       this.$refs.editRoleFormRef.resetFields()
     },
     showEditRoleDialog: async function (id) {
-      const { data: res } = await this.$http.get('roles/' + id)
+      const {
+        data: res
+      } = await this.$http.get('roles/' + id)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.editRoleForm = res.data
       this.isEditRoleDialogVisible = true
@@ -156,7 +169,9 @@ export default {
     editRole: function () {
       this.$refs.editRoleFormRef.validate(async isValidated => {
         if (!isValidated) return
-        const { data: res } = await this.$http.put('roles/' + this.editRoleForm.roleId, {
+        const {
+          data: res
+        } = await this.$http.put('roles/' + this.editRoleForm.roleId, {
           roleName: this.editRoleForm.roleName,
           roleDesc: this.editRoleForm.roleDesc
         })
@@ -165,6 +180,18 @@ export default {
         this.isEditRoleDialogVisible = false
         this.getRoleList()
       })
+    },
+    deleteRole: async function (id) {
+      const confirm = await this.$confirm('此操作将永久删除该角色, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(cancel => cancel)
+      if (confirm !== 'confirm') return this.$message.info('已取消删除')
+      const { data: res } = await this.$http.delete('roles/' + id)
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message.success(res.meta.msg)
+      this.getRoleList()
     }
   }
 }
