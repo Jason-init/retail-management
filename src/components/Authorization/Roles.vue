@@ -49,7 +49,7 @@
             <el-button size="mini" type="primary" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)">编辑
             </el-button>
             <el-button size="mini" type="danger" icon="el-icon-delete" @click="deleteRole(scope.row.id)">删除</el-button>
-            <el-button size="mini" type="warning" icon="el-icon-setting">分配权限</el-button>
+            <el-button size="mini" type="warning" icon="el-icon-setting" @click="showSetRoleDialog(scope.row)">分配权限</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -84,6 +84,13 @@
         <el-button type="primary" @click="editRole">确 定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="分配权限" :visible.sync="isSetRoleDialogVisible" width="40%" @closed="setRoleDialogClosed">
+      <el-tree ref="rightTreeRef" :data="rightList" :props="rightTreeProps" show-checkbox default-expand-all node-key="id" :default-checked-keys="defaultKeys" check-on-click-node></el-tree>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="isSetRoleDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="setRole">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -112,7 +119,15 @@ export default {
           message: '请输入角色名称',
           trigger: 'blur'
         }]
-      }
+      },
+      isSetRoleDialogVisible: false,
+      rightList: [],
+      rightTreeProps: {
+        children: 'children',
+        label: 'authName'
+      },
+      defaultKeys: [],
+      roleId: ''
     }
   },
   created: function () {
@@ -191,6 +206,34 @@ export default {
       const { data: res } = await this.$http.delete('roles/' + id)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.$message.success(res.meta.msg)
+      this.getRoleList()
+    },
+    showSetRoleDialog: function (row) {
+      this.roleId = row.id
+      this.getRightList()
+      this.getLeafKeys(row, this.defaultKeys)
+      this.isSetRoleDialogVisible = true
+    },
+    getRightList: async function () {
+      const { data: res } = await this.$http.get('rights/tree')
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.rightList = res.data
+    },
+    getLeafKeys: function (node, arr) {
+      if (!node.children) {
+        return arr.push(node.id)
+      }
+      node.children.forEach(item => this.getLeafKeys(item, arr))
+    },
+    setRoleDialogClosed: function () {
+      this.defaultKeys = []
+    },
+    setRole: async function () {
+      const keys = [...this.$refs.rightTreeRef.getCheckedKeys(), ...this.$refs.rightTreeRef.getHalfCheckedKeys()].join(',')
+      const { data: res } = await this.$http.post(`roles/${this.roleId}/rights`, { rids: keys })
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message.success(res.meta.msg)
+      this.isSetRoleDialogVisible = false
       this.getRoleList()
     }
   }
