@@ -84,6 +84,7 @@
         <el-button type="primary" @click="editRole">确 定</el-button>
       </span>
     </el-dialog>
+    <!-- 分配权限对话框 -->
     <el-dialog title="分配权限" :visible.sync="isSetRoleDialogVisible" width="40%" @closed="setRoleDialogClosed">
       <el-tree ref="rightTreeRef" :data="rightList" :props="rightTreeProps" show-checkbox default-expand-all node-key="id" :default-checked-keys="defaultKeys" check-on-click-node></el-tree>
       <span slot="footer" class="dialog-footer">
@@ -227,6 +228,7 @@ export default {
     },
     setRoleDialogClosed: function () {
       this.defaultKeys = []
+      this.$refs.rightTreeRef.setCheckedKeys([])
     },
     setRole: async function () {
       const keys = [...this.$refs.rightTreeRef.getCheckedKeys(), ...this.$refs.rightTreeRef.getHalfCheckedKeys()].join(',')
