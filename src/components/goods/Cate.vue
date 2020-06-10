@@ -25,7 +25,7 @@
         </template>
         <template slot="option" slot-scope="scope">
           <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditCateDialog(scope.row.cat_id)">编辑</el-button>
-          <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteCate(scope.row.cat_id)">删除</el-button>
         </template>
       </tree-table>
       <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
@@ -200,6 +200,18 @@ export default {
     },
     editCateDialogClosed: function () {
       this.$refs.editCateFormRef.resetFields()
+    },
+    deleteCate: async function (id) {
+      const confirm = await this.$confirm('此操作将永久删除该分类, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(cancel => cancel)
+      if (confirm !== 'confirm') return this.$message.info('已取消删除')
+      const { data: res } = await this.$http.delete('categories/' + id)
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message.success(res.meta.msg)
+      this.getCateList()
     }
   }
 }
