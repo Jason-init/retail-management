@@ -23,6 +23,15 @@
           <!-- 动态参数表格 -->
           <el-table :data="manyTableData" style="width: 100%" border stripe>
             <el-table-column type="expand">
+              <template slot-scope="scope">
+                <el-tag v-for="(item, index) in scope.row.attr_vals" :key="index" closable @close="handleTagClose(index, scope.row)">
+                  {{item}}
+                </el-tag>
+                <el-input class="input-new-tag" v-if="scope.row.inputVisible === true" v-model="scope.row.inputValue" ref="saveTagInputRef" size="small"
+                  @keyup.enter.native="handleInputConfirm(scope.row)" @blur="handleInputConfirm(scope.row)">
+                </el-input>
+                <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">+ New Tag</el-button>
+              </template>
             </el-table-column>
             <el-table-column type="index" label="#">
             </el-table-column>
@@ -30,8 +39,10 @@
             </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
-                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditParamsDialog(scope.row.attr_id)">修改</el-button>
-                <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteParams(scope.row.attr_id)">删除</el-button>
+                <el-button type="primary" icon="el-icon-edit" size="mini"
+                  @click="showEditParamsDialog(scope.row.attr_id)">修改</el-button>
+                <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteParams(scope.row.attr_id)">删除
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -41,6 +52,15 @@
           <!-- 静态参数表格 -->
           <el-table :data="onlyTableData" style="width: 100%" border stripe>
             <el-table-column type="expand">
+              <template slot-scope="scope">
+                <el-tag v-for="(item, index) in scope.row.attr_vals" :key="index" closable @close="handleTagClose(index, scope.row)">
+                  {{item}}
+                </el-tag>
+                <el-input class="input-new-tag" v-if="scope.row.inputVisible === true" v-model="scope.row.inputValue" ref="saveTagInputRef" size="small"
+                  @keyup.enter.native="handleInputConfirm(scope.row)" @blur="handleInputConfirm(scope.row)">
+                </el-input>
+                <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">+ New Tag</el-button>
+              </template>
             </el-table-column>
             <el-table-column type="index" label="#">
             </el-table-column>
@@ -48,8 +68,10 @@
             </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
-                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditParamsDialog(scope.row.attr_id)">修改</el-button>
-                <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteParams(scope.row.attr_id)">删除</el-button>
+                <el-button type="primary" icon="el-icon-edit" size="mini"
+                  @click="showEditParamsDialog(scope.row.attr_id)">修改</el-button>
+                <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteParams(scope.row.attr_id)">删除
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -133,11 +155,14 @@ export default {
     handleCascaderChange: function () {
       if (this.selectedCateKeys.length !== 3) {
         this.selectedCateKeys = []
+        this.manyTableData = []
+        this.onlyTableData = []
         return
       }
       this.getCateParamsList()
     },
     handleTabsClick: function () {
+      if (this.selectedCateKeys.length !== 3) return
       this.getCateParamsList()
     },
     getCateParamsList: async function () {
@@ -145,8 +170,20 @@ export default {
         params: { sel: this.activeName }
       })
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+
+      res.data.forEach(item => {
+        if (item.attr_vals) {
+          item.attr_vals = item.attr_vals.split(' ')
+        } else {
+          item.attr_vals = []
+        }
+        item.inputVisible = false
+        item.inputValue = ''
+      })
+
       if (this.activeName === 'many') {
         this.manyTableData = res.data
+        console.log(this.manyTableData)
       } else {
         this.onlyTableData = res.data
       }
@@ -207,7 +244,40 @@ export default {
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.$message.success(res.meta.msg)
       this.getCateParamsList()
+    },
+    handleInputConfirm: function (row) {
+      if (row.inputValue.trim().length === 0) {
+        row.inputValue = ''
+        row.inputVisible = false
+        return
+      }
+      row.attr_vals.push(row.inputValue)
+      this.saveAttrValues(row)
+      row.inputValue = ''
+      row.inputVisible = false
+    },
+    saveAttrValues: async function (row) {
+      const { data: res } = await this.$http.put(`categories/${this.cateId}/attributes/${row.attr_id}`, {
+        attr_name: row.attr_name,
+        attr_sel: row.attr_sel,
+        attr_vals: row.attr_vals.join(' ')
+      })
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message.success(res.meta.msg)
+    },
+    showInput: function (row) {
+      row.inputVisible = true
+
+      this.$nextTick(() => {
+        this.$refs.saveTagInputRef.focus()
+      })
+      console.log(row)
+    },
+    handleTagClose: function (index, row) {
+      row.attr_vals.splice(index, 1)
+      this.saveAttrValues(row)
     }
+
   },
   computed: {
     isBtnDisabled: function () {
@@ -229,5 +299,11 @@ export default {
 <style lang="less" scoped>
 .cate-opt {
   margin: 15px 0;
+}
+.el-tag {
+  margin: 10px;
+}
+.input-new-tag {
+  width: 100px;
 }
 </style>
