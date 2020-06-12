@@ -30,8 +30,8 @@
             </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
-                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditParamsDialog(scope.row)">修改</el-button>
-                <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditParamsDialog(scope.row.attr_id)">修改</el-button>
+                <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteParams(scope.row.attr_id)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -48,8 +48,8 @@
             </el-table-column>
             <el-table-column label="操作">
               <template slot-scope="scope">
-                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditParamsDialog(scope.row)">修改</el-button>
-                <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+                <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditParamsDialog(scope.row.attr_id)">修改</el-button>
+                <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteParams(scope.row.attr_id)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -170,9 +170,9 @@ export default {
         this.isAddParamsDialogVisible = false
       })
     },
-    showEditParamsDialog: async function (row) {
+    showEditParamsDialog: async function (id) {
       this.isEditParamsDialogVisible = true
-      const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes/${row.attr_id}`, {
+      const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes/${id}`, {
         params: {
           attr_sel: this.activeName
         }
@@ -195,6 +195,18 @@ export default {
     },
     editParamsDialogClosed: function () {
       this.$refs.editParamsFormRef.resetFields()
+    },
+    deleteParams: async function (id) {
+      const confirm = await this.$confirm('此操作将永久删除该参数, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(cancel => cancel)
+      if (confirm !== 'confirm') return this.$message.info('已经取消删除')
+      const { data: res } = await this.$http.delete(`categories/${this.cateId}/attributes/${id}`)
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message.success(res.meta.msg)
+      this.getCateParamsList()
     }
   },
   computed: {
